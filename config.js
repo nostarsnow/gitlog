@@ -7,10 +7,11 @@ const config = {
   '--no-merges': true,
   '--reverse': false,
   '--lint': false,
+  '--user': false,
   '--grep': '^(feat|fix|update|perf|doc|docs|test|chore|refactor|revert)(\\(.*\\))?:\\s.*',
   '--sort': "fail,commit",
   '--sort-type': 'desc',
-  '--only-show': '',
+  '--filter': '',
   '--padding': '0,2,0,2',
   '--cwd': './'
 };

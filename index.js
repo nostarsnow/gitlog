@@ -9,12 +9,14 @@ config = Object.assign(config, getArgv());
 const app = async () => {
   let since = config['--since'];
   let before = config['--before'];
+  let lint = config['--lint'];
+  let user = config['--user'];
   let grep = config['--grep'];
   let sort = config['--sort'];
   let sortType = config['--sort-type'];
   let padding = config['--padding'].split(',').map(v => +v);
   let cwd = config['--cwd'];
-  let onlyShow = config['--only-show']
+  let filter = config['--filter'];
   let gitlogCmd = [
     'git',
     config['--no-pager'] ? '--no-pager' : '',
@@ -39,12 +41,12 @@ const app = async () => {
     );
   }
   let curBranch = await getCurBranch('git branch', { cwd: cwd });
-  if (config['--lint']) {
-    showWithGrep();
+  if (user) {
+    showAllUserLog();
   } else {
     showAllLog();
   }
-  function showWithGrep() {
+  function showAllUserLog() {
     let result = log.reduce((p, v) => {
       let cur = p.find(vv => vv.author === v.author);
       let pass = new RegExp(grep).test(v.message);
@@ -68,56 +70,67 @@ const app = async () => {
       return p;
     }, []);
     if (sort) {
-      let _sort = sort.split(',')
+      let _sort = sort.split(',');
       result = result.sort((a, b) => {
-        let _b1 = b[`_${_sort[0]}`]
-        let _a1 = a[`_${_sort[0]}`]
-        let _b2 = b[`_${_sort[1]}`]
-        let _a2 = a[`_${_sort[1]}`]
-        if ( _b1 !== _a1 ){
-          return ( _b1 - _a1 ) * (sortType === 'desc' ? 1 : -1);
-        }else{
-          return ( _b2 - _a2 ) * (sortType === 'desc' ? 1 : -1);
+        let _b1 = b[`_${_sort[0]}`];
+        let _a1 = a[`_${_sort[0]}`];
+        let _b2 = b[`_${_sort[1]}`];
+        let _a2 = a[`_${_sort[1]}`];
+        if (_b1 !== _a1) {
+          return (_b1 - _a1) * (sortType === 'desc' ? 1 : -1);
+        } else {
+          return (_b2 - _a2) * (sortType === 'desc' ? 1 : -1);
         }
       });
     }
-    if ( onlyShow ){
-      result = result.filter(v=>v[`_${onlyShow}`] > 0).map(v=>{
-        v.list = v.list.filter(v=>v[`_${onlyShow}`])
-        return v
-      })
+    if (filter) {
+      result = result
+        .filter(v => v[`_${filter}`] > 0)
+        .map(v => {
+          v.list = v.list.filter(v => v[`_${filter}`]);
+          return v;
+        });
     }
     console.log(
       chalk.blue(
         `\n------------------------------------------------统计信息------------------------------------------------\n`
       )
     );
-    console.log(chalk.green('当前分支：') + chalk.bgCyan(' ' + curBranch + ' '));
-    console.log(chalk.green('时间范围：') + since + ' ~ ' + before);
-    if ( onlyShow ){
-      console.log(chalk.bgMagenta(`仅显示${onlyShow}记录！！！`))
-    }
     console.log(
       [
-        chalk.yellow(
-          'commit: ' +
-            result.reduce((p, v) => {
-              return (p += v._commit);
-            }, 0)
-        ),
-        chalk.green(
-          'pass: ' +
-            result.reduce((p, v) => {
-              return (p += v._pass);
-            }, 0)
-        ),
-        chalk.red(
-          'fail: ' +
-            result.reduce((p, v) => {
-              return (p += v._fail);
-            }, 0)
+        chalk.green('时间范围：') + since + ' ~ ' + before,
+        chalk.green('当前分支：') + chalk.bgCyan(' ' + curBranch + ' ')
+      ]
+        .concat([
+          chalk.yellow(
+            'commit: ' +
+              result.reduce((p, v) => {
+                return (p += v._commit);
+              }, 0)
+          )
+        ])
+        .concat(
+          lint
+            ? [
+                chalk.green(
+                  'pass: ' +
+                    result.reduce((p, v) => {
+                      return (p += v._pass);
+                    }, 0)
+                ),
+                chalk.red(
+                  'fail: ' +
+                    result.reduce((p, v) => {
+                      return (p += v._fail);
+                    }, 0)
+                )
+              ]
+            : []
         )
-      ].join('   ')
+        .concat([
+          filter ? chalk.bgMagenta(` 仅显示${filter}记录! `) : []
+        ])
+        .join('  ')
     );
     console.log(
       chalk.blue(
@@ -127,13 +140,21 @@ const app = async () => {
     result.forEach(v => {
       console.log(
         [
-          chalk.yellow('author: ') + chalk[v._fail == 0 ? 'cyan' : 'bgRed'](' ' + v.author + ' '),
-          chalk.yellow('commit：') + chalk.yellow(' ' + v._commit + ' '),
-          chalk.green('pass：') + chalk.green(' ' + v._pass + ' '),
-          chalk.red('fail：') +
-            chalk[v._fail == 0 ? 'cyan' : 'bgRed'](' ' + v._fail + ' '),
-          '\n'
-        ].join('    ')
+          chalk.yellow('author: ') +
+            chalk[ lint && v._fail > 0 ? 'bgRed' : 'cyan'](' ' + v.author + ' '),
+          chalk.yellow('commit：') + chalk.yellow(' ' + v._commit + ' ')
+        ]
+          .concat(
+            lint
+              ? [
+                  chalk.green('pass：') + chalk.green(' ' + v._pass + ' '),
+                  chalk.red('fail：') +
+                    chalk[v._fail == 0 ? 'cyan' : 'bgRed'](' ' + v._fail + ' ')
+                ]
+              : []
+          )
+          .concat(['\n'])
+          .join('    ')
       );
       const ui = cliui();
       ui.div(
@@ -156,7 +177,7 @@ const app = async () => {
       v.list.forEach(v => {
         return ui.div(
           {
-            text: v._fail ? chalk.bgRed(v.hash) : v.hash,
+            text: lint && v._fail ? chalk.bgRed(v.hash) : v.hash,
             width: 15,
             padding
           },
@@ -176,6 +197,15 @@ const app = async () => {
     });
   }
   function showAllLog() {
+    log = log.map(v => {
+      let pass = new RegExp(grep).test(v.message);
+      v._pass = pass;
+      v._fail = !pass;
+      return v;
+    });
+    if (filter) {
+      log = log.filter(v => v[`_${filter}`]);
+    }
     console.log(
       chalk.blue(
         `\n------------------------------------------------统计信息------------------------------------------------\n`
@@ -183,10 +213,22 @@ const app = async () => {
     );
     console.log(
       [
-        chalk.green('时间范围：') + ' ' + since + ' ~ ' + before + ' ',
+        chalk.green('时间范围：') + since + ' ~ ' + before,
         chalk.green('当前分支：') + chalk.bgCyan(' ' + curBranch + ' '),
         chalk.yellow('commit: ') + chalk.bgYellow(' ' + log.length + ' ')
-      ].join('    ')
+      ]
+        .concat(
+          lint
+            ? [
+                chalk.green('pass: ' + log.filter(v => v._pass).length),
+                chalk.red('fail: ' + log.filter(v => v._fail).length)
+              ]
+            : []
+        )
+        .concat([
+          filter ? chalk.bgMagenta(` 仅显示${filter}记录! `) : []
+        ])
+        .join('  ')
     );
     console.log(
       chalk.blue(
@@ -220,7 +262,7 @@ const app = async () => {
     log.forEach(v => {
       ui.div(
         {
-          text: v.hash,
+          text: lint && v._fail ? chalk.bgRed(v.hash) : v.hash,
           width: 15,
           padding
         },
