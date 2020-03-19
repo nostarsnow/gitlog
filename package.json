@@ -1,5 +1,5 @@
 {
-  "name": "@ns/gitlog",
+  "name": "@nostar/gitlog",
   "version": "0.0.1",
   "description": "更友好的git log，附带检测git commit message",
   "main": "index.js",
@@ -13,6 +13,10 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "cliui": "^6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nostarsnow/gitlog"
   },
   "bin": {
     "gitlog": "./index.js"

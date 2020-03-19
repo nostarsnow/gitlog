@@ -8,7 +8,7 @@
 > 请确保命令行可以正常使用git且当前文件夹下有.git
 
 ```bash
-npm i @ns/gitlog -D
+npm i @nostar/gitlog -D
 
 # 默认显示当月1号到今天的commit
 gitlog
