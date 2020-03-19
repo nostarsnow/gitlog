@@ -1,4 +1,4 @@
-# @ns/gitlog
+# @nostar/gitlog
 
 ## 初衷
 `git log`方法虽然强大，但是总有些不尽如人意的地方。就比如`--grep`的正则支持的是`BER`和`ERE`。我更喜欢自定义一些。
