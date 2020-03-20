@@ -29,7 +29,6 @@ const app = async () => {
     config['--no-merges'] ? '--no-merges' : ''
   ].join(' ');
   let log = await execSync(gitlogCmd, { cwd: cwd });
-  console.log(log)
   log = log
     .split('\n')
     .filter(v => v)

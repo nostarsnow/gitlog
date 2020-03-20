@@ -1,6 +1,6 @@
 {
   "name": "@nostar/gitlog",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "更友好的git log，附带检测git commit message",
   "main": "index.js",
   "scripts": {},
