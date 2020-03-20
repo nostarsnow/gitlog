@@ -29,10 +29,11 @@ const app = async () => {
     config['--no-merges'] ? '--no-merges' : ''
   ].join(' ');
   let log = await execSync(gitlogCmd, { cwd: cwd });
+  console.log(log)
   log = log
     .split('\n')
     .filter(v => v)
-    .map(v => JSON.parse(v.replace(/'/g, '"')));
+    .map(v => JSON.parse(v.replace(/':('{2,})/g,"':'").replace(/('{2,}),/g,"',").replace(/'/g, '"')));
   if (log.length === 0) {
     return console.log(
       chalk.blue(since + '~' + before) +
@@ -244,7 +245,7 @@ const app = async () => {
       },
       {
         text: chalk.bgGrey('[Message]'),
-        width: 40,
+        width: 45,
         padding
       },
       {
@@ -268,7 +269,7 @@ const app = async () => {
         },
         {
           text: v.message,
-          width: 40,
+          width: 45,
           padding
         },
         {
