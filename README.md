@@ -42,9 +42,9 @@ gitlog --user --lint --filter=fail
 
 ```
 
-![gitlog](https://img02.sogoucdn.com/app/a/100520146/8741227ddef04854f356440a2e57d83a)  
+![gitlog](https://i.loli.net/2020/03/24/eOhMnQKbwJjzcaG.jpg)  
 
-![gitlog --lint](https://img02.sogoucdn.com/app/a/100520146/789d6c1eccda28c6a20bc9ab43a118d6)  
+![gitlog --lint](https://i.loli.net/2020/03/24/6Ob9mxpDjPf3Fv8.jpg)  
 
 ## 其他参数
 
