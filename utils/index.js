@@ -47,7 +47,7 @@ const getCurBranch = (cmd='git branch',options={cwd: './'})=>{
         reject();
         return;
       }
-      resolve(stdout.match(/\*\s+(\w+)/)[1]);
+      resolve(stdout.match(/\*\s+(.+)/)[1]);
     });
   });
 }
